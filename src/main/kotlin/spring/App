@@ -1,13 +1,26 @@
 @SpringBootApplication
 open class App {
+    @Bean
     open fun ObjectMapper() : ObjectMapper {
+        val mapper: ObjectMapper = Jackson2ObjectMapperBuilder()
+                .modulesToInstall(PostGISModule())
+                .build()
+        mapper.setSerializationInclusion(Include.NON_NULL)
+        return mapper
 
     }
 
+    @Bean
     open fun db(dataSource: DataSource) = Database.connect(dataSource)
 
-    open fun init() {
-
+    @Bean
+    open fun init(db: Database,
+                  url: UserRepository,
+                  mr: MessageRepository) = CommandLineRunner {
+        ur.createTable()
+        mr.craeteTable()
+        mr.deleteAll()
+        ur.deleteAll()
     }
 }
 

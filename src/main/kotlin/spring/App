@@ -1,3 +1,16 @@
+@SpringBootApplication
 open class App {
+    open fun ObjectMapper() : ObjectMapper {
 
+    }
+
+    open fun db(dataSource: DataSource) = Database.connect(dataSource)
+
+    open fun init() {
+
+    }
+}
+
+fun main(args: Array<String>) {
+    SpringApplication.run(Application::class.java, *args)
 }

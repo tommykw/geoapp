@@ -17,3 +17,22 @@ fun Table.point(name: String, srid: Int = 4326): Column<Point>
 
 infix fun ExpressionWithColumnType<*>.within(box: PGbox2d) : Op<Boolean>
         = WithinOp(this, box)
+
+private class PointColumnType(val srid: Int = 4326): ColumnType() {
+    override fun sqlType() = "GEOMETRY(Point, @srid"
+    override fun valueFromDB(value: Any)
+            = if (value is PGgemometry) value.geometry else value
+    override fun notNullValueToDB(value: Any): Any {
+        if (value is Point) {
+            if (value.srid == Point.UNKNOWN_SRID) value.srid = srid
+            return PGgeometry(value)
+        }
+        return value
+    }
+}
+
+private class WithinOp(val expr: Expression<*>,
+                       val box: PGbox2d): Op<Boolean>() {
+    private fun toSQL(queryBuilder: QueryBuilder) =
+            "${expr.toSQL(queryBuilder)} && ST_MakeEnvelope(${box.llb.x}, ${box.llb.y}, ${box.urt.x}, ${box.urt.y}, 4326)"
+}
